@@ -82,6 +82,9 @@ function onMessageSend(input) {
 
     messages.push(message);
 
+    // Print the current messages array to the console for debugging purposes
+    console.log("Messages:", messages);
+
     const onFinishGenerating = (finalMessage, usage) => {
         //document.getElementById("message-out").textContent = "AI Response:\n" + finalMessage;
         //document.getElementById("message-out").innerText = "AI Response:\n" + finalMessage;
