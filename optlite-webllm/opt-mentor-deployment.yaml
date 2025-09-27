@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opt-mentor # Replace with your own name
+  labels:
+    app: opt-mentor # Replace with your own name
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opt-mentor # Replace with your own name
+  template:
+    metadata:
+      labels:
+        app: opt-mentor # Replace with your own name
+    spec:
+      containers:
+      - name: opt-mentor # Replace with your own name
+        image: mingklai5/opt-mentor # Replace with your own image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000 # Replace to your port
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opt-mentor # Replace with your own name
+spec:
+  selector:
+    app: opt-mentor # Replace with your own name
+  ports:
+  - name: opt-mentor # Replace with your own name
+    port: 8000 # Replace to your port
+    targetPort: 8000 # Replace to your port
+  type: ClusterIP

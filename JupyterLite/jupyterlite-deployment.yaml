@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyterlite # Replace with your own name
+  labels:
+    app: jupyterlite # Replace with your own name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyterlite # Replace with your own name
+  template:
+    metadata:
+      labels:
+        app: jupyterlite # Replace with your own name
+    spec:
+      containers:
+      - name: jupyterlite # Replace with your own name
+        image: dzifanng/jup-opm # Replace with your own image
+        ports:
+        - containerPort: 8888 # Replace to your port
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyterlite # Replace with your own name
+spec:
+  selector:
+    app: jupyterlite # Replace with your own name
+  ports:
+  - name: jupyterlite # Replace with your own name
+    port: 8888 # Replace to your port
+    targetPort: 8888 # Replace to your port
+  type: ClusterIP

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-model # Replace with your own name
+  namespace: certificate
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2 #Replace to your path
+    cert-manager.io/cluster-issuer: letsencrypt-production
+spec:
+  ingressClassName: public
+  tls:
+    - hosts:
+        - deep.cs.cityu.edu.hk
+      secretName: letsencrypt-production-tls
+  rules:
+    - host: deep.cs.cityu.edu.hk
+      http:
+        paths:
+          - path: /optmentor/ai-model(/|$)(.*) #Replace to your path
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-model # Replace with your own name
+                port:
+                  number: 5050 #Replace to your port
