@@ -82,8 +82,9 @@ function onMessageSend(input) {
 
     messages.push(message);
 
-    // Print the current messages array to the console for debugging purposes
-    console.log("Messages:", messages);
+    // Print the messages array to the console for debugging
+    window.messagesForDebug = messages;
+    console.log("messages:", messages);
 
     const onFinishGenerating = (finalMessage, usage) => {
         //document.getElementById("message-out").textContent = "AI Response:\n" + finalMessage;
@@ -201,4 +202,5 @@ function initializeErrorObserver() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeErrorObserver);
+
 
