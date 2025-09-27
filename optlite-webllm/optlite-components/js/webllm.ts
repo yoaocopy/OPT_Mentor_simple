@@ -6,7 +6,7 @@ import { OptFrontend } from './opt-frontend';
 /*************** WebLLM logic ***************/
 const messages = [
     {
-        content: "You are a helpful AI agent helping users.",
+        content: "You are a Python tutor. Respond ONLY with Socratic-style hints: short, guiding QUESTIONS (no solutions, no code, no imperative fixes). At most 100 words.",
         role: "system",
     },
 ];
@@ -14,7 +14,7 @@ const messages = [
 const availableModels = webllm.prebuiltAppConfig.model_list.map(
     (m) => m.model_id,
 );
-let selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+let selectedModel = "sft_model_1.5B-q4f16_1-MLC (Hugging Face)";
 
 // Callback function for initializing progress
 function updateEngineInitProgressCallback(report) {
@@ -66,6 +66,9 @@ async function streamingGenerating(messages, onUpdate, onFinish, onError) {
 
 /*************** UI logic ***************/
 function onMessageSend(input) {
+    // Reset the messages array, keeping only the system message
+    messages.length = 1; 
+    
     const message = {
         content: input,
         role: "user",
@@ -80,7 +83,10 @@ function onMessageSend(input) {
     messages.push(message);
 
     const onFinishGenerating = (finalMessage, usage) => {
-        document.getElementById("message-out").textContent = "AI Response:\n" + finalMessage;
+        //document.getElementById("message-out").textContent = "AI Response:\n" + finalMessage;
+        //document.getElementById("message-out").innerText = "AI Response:\n" + finalMessage;
+        document.getElementById("message-out").innerText = "AI Response:\n" + finalMessage.replace(/\?/g, '?\n');
+        
         const usageText =
         `prompt_tokens: ${usage.prompt_tokens}, ` +
         `completion_tokens: ${usage.completion_tokens}, ` +
@@ -112,8 +118,8 @@ function onMessageSend(input) {
 document.getElementById("askAI").addEventListener("click", function () {
     //const frontend = new OptFrontend();
 
-    var question = "I'm writing Python, and here's my code: "+extractText()+" and I received this error: " + document.getElementById("frontendErrorOutput").textContent?.replace("(UNSUPPORTED FEATURES)", "") +
-    "Can you please provide a brief explanation of the cause of this error? I only need the reason., No code solution needed.";
+    var question = "## Code ```python  "+extractText()+"  ```  ## Error  ```text  " + document.getElementById("frontendErrorOutput").textContent?.replace("(UNSUPPORTED FEATURES)", "") +
+    "  ```  ## Task  Ask guiding questions that help me discover the mistake.";
 
     document.getElementById("chat-stats").classList.add("hidden");
     onMessageSend(question);
