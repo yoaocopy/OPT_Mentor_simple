@@ -5,7 +5,7 @@ import { OptFrontend } from './opt-frontend';
 const API_CONFIG = {
     enabled: false, // Whether to use API mode instead of local WebLLM
     baseUrl: "https://ollama.optmentor.webllm.art/v1", // API server base URL
-    apiKey: "", // Optional API key for authentication
+    apiKey: "", // API key for authentication
     model: "sft_model_1.5B_f16" // Model name for API calls
 };
 
@@ -357,7 +357,7 @@ function toggleAPIMode() {
 function updateModeDisplay() {
     const statusElement = document.getElementById("mode-status");
     if (statusElement) {
-        statusElement.textContent = API_CONFIG.enabled ? "API Mode" : "Local Mode";
+        statusElement.textContent = `Current Mode: ${API_CONFIG.enabled ? "API Mode" : "Local Mode"}`;
         statusElement.className = API_CONFIG.enabled ? "mode-status api-mode" : "mode-status local-mode";
     }
     
@@ -393,9 +393,14 @@ function saveAPIConfig() {
     const keyInput = document.getElementById("api-key") as HTMLInputElement;
     const modelInput = document.getElementById("api-model") as HTMLInputElement;
     
-    if (urlInput) API_CONFIG.baseUrl = urlInput.value;
-    if (keyInput) API_CONFIG.apiKey = keyInput.value;
-    if (modelInput) API_CONFIG.model = modelInput.value;
+    // Only overwrite runtime values when user actually typed something
+    const urlVal = urlInput?.value?.trim();
+    const keyVal = keyInput?.value?.trim();
+    const modelVal = modelInput?.value?.trim();
+
+    if (urlVal) API_CONFIG.baseUrl = urlVal;
+    if (keyVal !== undefined) API_CONFIG.apiKey = keyVal; // allow empty to clear key explicitly
+    if (modelVal) API_CONFIG.model = modelVal;
     
     const configToSave = {
         enabled: API_CONFIG.enabled,
@@ -413,25 +418,24 @@ function loadAPIConfig() {
     if (saved) {
         try {
             const config = JSON.parse(saved);
-            API_CONFIG.enabled = config.enabled || false;
-            API_CONFIG.baseUrl = config.baseUrl || API_CONFIG.baseUrl;
-            API_CONFIG.apiKey = config.apiKey || API_CONFIG.apiKey;
-            API_CONFIG.model = config.model || API_CONFIG.model;
-            
-            // Update UI elements with proper typing
-            const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
-            const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
-            const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
-            
-            if (urlInput) urlInput.value = API_CONFIG.baseUrl;
-            if (keyInput) keyInput.value = API_CONFIG.apiKey;
-            if (modelInput) modelInput.value = API_CONFIG.model;
+            API_CONFIG.enabled = (config.enabled ?? API_CONFIG.enabled);
+            API_CONFIG.baseUrl = (config.baseUrl ?? API_CONFIG.baseUrl);
+            API_CONFIG.apiKey = (config.apiKey ?? API_CONFIG.apiKey);
+            API_CONFIG.model = (config.model ?? API_CONFIG.model);
             
             console.log("API configuration loaded:", config);
         } catch (e) {
             console.error("Failed to load API configuration:", e);
         }
     }
+
+    // Always reflect current runtime values into inputs on first load
+    const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
+    const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
+    const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+    if (urlInput) urlInput.value = API_CONFIG.baseUrl;
+    if (keyInput) keyInput.value = API_CONFIG.apiKey;
+    if (modelInput) modelInput.value = API_CONFIG.model;
 }
 
 /*************** Event Listeners ***************/
@@ -442,6 +446,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load API configuration
     loadAPIConfig();
     
+    // If user switches to API mode for the first time in this browser session,
+    // use the in-code defaults immediately (so displayed values match actual usage)
+    const toggleBtn = document.getElementById("toggle-api");
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+            // After toggle, API_CONFIG.enabled state will flip in toggleAPIMode
+            // We just ensure inputs reflect current runtime values before first save
+            const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
+            const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
+            const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+            if (urlInput && !urlInput.value) urlInput.value = API_CONFIG.baseUrl;
+            if (keyInput && !keyInput.value) keyInput.value = API_CONFIG.apiKey;
+            if (modelInput && !modelInput.value) modelInput.value = API_CONFIG.model;
+        });
+    }
+
     // Update UI based on loaded configuration
     updateModeDisplay();
     updateUIElements();
@@ -452,10 +472,10 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.addEventListener("click", saveAPIConfig);
     }
     
-    // Bind mode toggle button
-    const toggleBtn = document.getElementById("toggle-api");
-    if (toggleBtn) {
-        toggleBtn.addEventListener("click", toggleAPIMode);
+    // Bind mode toggle button (actual toggle)
+    const toggleBtn2 = document.getElementById("toggle-api");
+    if (toggleBtn2) {
+        toggleBtn2.addEventListener("click", toggleAPIMode);
     }
 });
 
