@@ -1,7 +1,13 @@
 import * as webllm from "../../webllm-components";
 import { OptFrontend } from './opt-frontend';
 
-
+/*************** API Configuration ***************/
+const API_CONFIG = {
+    enabled: false, // Whether to use API mode instead of local WebLLM
+    baseUrl: "http://localhost:5000/api", // API server base URL
+    apiKey: "", // Optional API key for authentication
+    model: "gpt-3.5-turbo" // Model name for API calls
+};
 
 /*************** WebLLM logic ***************/
 const messages = [
@@ -38,7 +44,73 @@ async function initializeWebLLMEngine() {
     await engine.reload(selectedModel, config);
 }
 
+/*************** API Calling Functions ***************/
+async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
+    try {
+        const response = await fetch(`${API_CONFIG.baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(API_CONFIG.apiKey && { 'Authorization': `Bearer ${API_CONFIG.apiKey}` })
+            },
+            body: JSON.stringify({
+                model: API_CONFIG.model,
+                messages: messages,
+                stream: true,
+                temperature: 1.0,
+                top_p: 1
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let fullResponse = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // Keep the last incomplete line
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') {
+                        onFinish(fullResponse, null);
+                        return;
+                    }
+                    
+                    try {
+                        const parsed = JSON.parse(data);
+                        const content = parsed.choices?.[0]?.delta?.content;
+                        if (content) {
+                            fullResponse += content;
+                            onUpdate(fullResponse);
+                        }
+                    } catch (e) {
+                        // Ignore parsing errors
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        onError(err);
+    }
+}
+
 async function streamingGenerating(messages, onUpdate, onFinish, onError) {
+    if (API_CONFIG.enabled) {
+        return callOpenAIAPI(messages, onUpdate, onFinish, onError);
+    }
+    
+    // Original WebLLM logic
     try {
         let curMessage = "";
         let usage;
@@ -86,28 +158,32 @@ function onMessageSend(input) {
     console.log("Messages:", messages);
 
     const onFinishGenerating = (finalMessage, usage) => {
-        //document.getElementById("message-out").textContent = "AI Response:\n" + finalMessage;
-        //document.getElementById("message-out").innerText = "AI Response:\n" + finalMessage;
         document.getElementById("message-out").innerText = "AI Response:\n" + finalMessage.replace(/\?/g, '?\n');
         
-        const usageText =
-        `prompt_tokens: ${usage.prompt_tokens}, ` +
-        `completion_tokens: ${usage.completion_tokens}, ` +
-        `prefill: ${usage.extra.prefill_tokens_per_s.toFixed(4)} tokens/sec, ` +
-        `decoding: ${usage.extra.decode_tokens_per_s.toFixed(4)} tokens/sec`;
-        document.getElementById("chat-stats").classList.remove("hidden");
-        document.getElementById("chat-stats").textContent = usageText;
+        // Show usage stats only if available (local mode)
+        if (usage && usage.prompt_tokens) {
+            const usageText =
+            `prompt_tokens: ${usage.prompt_tokens}, ` +
+            `completion_tokens: ${usage.completion_tokens}, ` +
+            `prefill: ${usage.extra.prefill_tokens_per_s.toFixed(4)} tokens/sec, ` +
+            `decoding: ${usage.extra.decode_tokens_per_s.toFixed(4)} tokens/sec`;
+            document.getElementById("chat-stats").classList.remove("hidden");
+            document.getElementById("chat-stats").textContent = usageText;
+        } else {
+            // Hide usage stats for API mode
+            document.getElementById("chat-stats").classList.add("hidden");
+        }
         //document.getElementById("send").disabled = false;
     };
 
     streamingGenerating(
         messages,
         (msg) => {
-            document.getElementById("message-out").textContent = "AI Response:\n" + msg;
+            document.getElementById("message-out").innerText = "AI Response:\n" + msg.replace(/\?/g, '?\n');
         },
         onFinishGenerating,
         (err) => {
-            document.getElementById("message-out").textContent = "Error: " + err;
+            document.getElementById("message-out").innerText = "Error: " + err;
             console.error(err);
         }
 
@@ -200,5 +276,116 @@ function initializeErrorObserver() {
         frontendErrorOutput.textContent?.trim() !== '' ? 'block' : 'none';
 }
 
-document.addEventListener('DOMContentLoaded', initializeErrorObserver);
+/*************** Mode Switching Functions ***************/
+function toggleAPIMode() {
+    API_CONFIG.enabled = !API_CONFIG.enabled;
+    updateModeDisplay();
+    updateUIElements();
+    saveAPIConfig(); // Save the mode preference
+}
+
+function updateModeDisplay() {
+    const statusElement = document.getElementById("mode-status");
+    if (statusElement) {
+        statusElement.textContent = API_CONFIG.enabled ? "API Mode" : "Local Mode";
+        statusElement.className = API_CONFIG.enabled ? "mode-status api-mode" : "mode-status local-mode";
+    }
+    
+    const toggleBtn = document.getElementById("toggle-api");
+    if (toggleBtn) {
+        toggleBtn.textContent = API_CONFIG.enabled ? "Switch to Local Mode" : "Switch to API Mode";
+    }
+}
+
+function updateUIElements() {
+    const localElements = document.querySelectorAll(".local-only");
+    const apiElements = document.querySelectorAll(".api-only");
+    
+    localElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "none" : "block");
+    apiElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "block" : "none");
+    
+    // Enable/disable Ask AI button based on mode
+    const askAIButton = document.getElementById("askAI") as HTMLButtonElement;
+    if (askAIButton) {
+        if (API_CONFIG.enabled) {
+            // In API mode, enable Ask AI button immediately
+            askAIButton.disabled = false;
+        } else {
+            // In local mode, keep the original behavior (disabled until model is downloaded)
+            askAIButton.disabled = true;
+        }
+    }
+}
+
+/*************** Configuration Management ***************/
+function saveAPIConfig() {
+    const urlInput = document.getElementById("api-url") as HTMLInputElement;
+    const keyInput = document.getElementById("api-key") as HTMLInputElement;
+    const modelInput = document.getElementById("api-model") as HTMLInputElement;
+    
+    if (urlInput) API_CONFIG.baseUrl = urlInput.value;
+    if (keyInput) API_CONFIG.apiKey = keyInput.value;
+    if (modelInput) API_CONFIG.model = modelInput.value;
+    
+    const configToSave = {
+        enabled: API_CONFIG.enabled,
+        baseUrl: API_CONFIG.baseUrl,
+        apiKey: API_CONFIG.apiKey,
+        model: API_CONFIG.model
+    };
+    
+    localStorage.setItem('api_config', JSON.stringify(configToSave));
+    console.log("API configuration saved:", configToSave);
+}
+
+function loadAPIConfig() {
+    const saved = localStorage.getItem('api_config');
+    if (saved) {
+        try {
+            const config = JSON.parse(saved);
+            API_CONFIG.enabled = config.enabled || false;
+            API_CONFIG.baseUrl = config.baseUrl || API_CONFIG.baseUrl;
+            API_CONFIG.apiKey = config.apiKey || API_CONFIG.apiKey;
+            API_CONFIG.model = config.model || API_CONFIG.model;
+            
+            // Update UI elements with proper typing
+            const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
+            const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
+            const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+            
+            if (urlInput) urlInput.value = API_CONFIG.baseUrl;
+            if (keyInput) keyInput.value = API_CONFIG.apiKey;
+            if (modelInput) modelInput.value = API_CONFIG.model;
+            
+            console.log("API configuration loaded:", config);
+        } catch (e) {
+            console.error("Failed to load API configuration:", e);
+        }
+    }
+}
+
+/*************** Event Listeners ***************/
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize error observer
+    initializeErrorObserver();
+    
+    // Load API configuration
+    loadAPIConfig();
+    
+    // Update UI based on loaded configuration
+    updateModeDisplay();
+    updateUIElements();
+    
+    // Bind API configuration save button
+    const saveBtn = document.getElementById("save-api-config");
+    if (saveBtn) {
+        saveBtn.addEventListener("click", saveAPIConfig);
+    }
+    
+    // Bind mode toggle button
+    const toggleBtn = document.getElementById("toggle-api");
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", toggleAPIMode);
+    }
+});
 

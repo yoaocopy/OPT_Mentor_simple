@@ -75,9 +75,36 @@
             
               <button id="askAI" disabled>Ask AI</button>
 
+              <!-- Mode toggle and status (shared by both modes) -->
+              <div class="mode-controls" style="margin-top: 10px;">
+                <button id="toggle-api">Switch to API Mode</button>
+                <span id="mode-status" style="margin-left: 8px; font-weight: bold;">Local Mode</span>
+              </div>
+
+              <!-- API configuration panel (visible only in API mode) -->
+              <div class="api-only" style="display: none; margin-top: 10px;">
+                <!-- API settings inputs; values are persisted in localStorage -->
+                <div class="api-config" style="border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                  <div style="margin-bottom: 8px;">
+                    <label for="api-url">API Server URL</label>
+                    <input type="text" id="api-url" placeholder="http://localhost:5000/api" style="width: 100%; box-sizing: border-box;">
+                  </div>
+                  <div style="margin-bottom: 8px;">
+                    <label for="api-key">API Key (Optional)</label>
+                    <input type="password" id="api-key" placeholder="Your API key" style="width: 100%; box-sizing: border-box;">
+                  </div>
+                  <div style="margin-bottom: 8px;">
+                    <label for="api-model">Model Name</label>
+                    <input type="text" id="api-model" placeholder="gpt-3.5-turbo" style="width: 100%; box-sizing: border-box;">
+                  </div>
+                  <button id="save-api-config">Save API Config</button>
+                </div>
+              </div>
+
            
               <p>Step 1: Initialize WebLLM and Download Model</p>
-              <div class="download-container">
+              <!-- Local-only controls; hidden when API mode is enabled -->
+              <div class="download-container local-only">
                 <select id="model-selection"></select>
                 <button id="download">Pull Model</button>
               </div>
