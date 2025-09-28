@@ -47,6 +47,20 @@ async function initializeWebLLMEngine() {
 /*************** API Calling Functions ***************/
 async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
     try {
+        // Use AbortController to allow inactivity timeout
+        const abortController = new AbortController();
+        const INACTIVITY_TIMEOUT_MS = 20000; // Auto-stop if no delta within this window
+        let inactivityTimer: number | null = null;
+        const resetInactivity = () => {
+            if (inactivityTimer !== null) {
+                clearTimeout(inactivityTimer as unknown as number);
+            }
+            inactivityTimer = setTimeout(() => {
+                console.warn("[API] Inactivity timeout reached, aborting stream");
+                abortController.abort();
+            }, INACTIVITY_TIMEOUT_MS) as unknown as number;
+        };
+
         const response = await fetch(`${API_CONFIG.baseUrl}/chat/completions`, {
             method: 'POST',
             headers: {
@@ -60,8 +74,13 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
                 messages: messages,
                 stream: true,
                 temperature: 1.0,
-                top_p: 1
-            })
+                top_p: 1,
+                // Constrain generation to avoid endless outputs
+                max_tokens: 512,
+                // Qwen2 stop strings (aligned with qwen2/chatml template)
+                stop: ["<|endoftext|>", "<|im_end|>"]
+            }),
+            signal: abortController.signal
         });
 
         if (!response.ok) {
@@ -77,10 +96,12 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
             const decoder = new TextDecoder();
             let buffer = '';
             let fullResponse = '';
+            resetInactivity();
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
+                resetInactivity();
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');
@@ -100,17 +121,22 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
 
                     try {
                         const parsed = JSON.parse(data);
+                        // Support both OpenAI and Ollama stream chunk shapes
                         const choice = parsed.choices?.[0];
-                        const delta = choice?.delta?.content;
+                        const deltaOpenAI = choice?.delta?.content as string | undefined;
+                        const deltaOllama = (parsed.message?.content as string | undefined) ?? (parsed.response as string | undefined);
+                        const hasDone = parsed.done === true || choice?.finish_reason;
+
+                        const delta = deltaOpenAI ?? deltaOllama;
                         if (delta) {
                             fullResponse += delta;
                             onUpdate(fullResponse);
                             // Log incremental delta to console
                             console.debug("[API] Stream delta:", delta);
+                            resetInactivity();
                         }
-                        // Some servers send finish_reason in the final chunk
-                        if (choice?.finish_reason) {
-                            console.log("[API] Stream finished with reason:", choice.finish_reason);
+                        if (hasDone) {
+                            console.log("[API] Stream finished with reason:", choice?.finish_reason ?? 'done flag');
                             onFinish(fullResponse, null);
                             return;
                         }
@@ -125,9 +151,12 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
         } else {
             // Fallback: non-streaming JSON response
             const data = await response.json();
+            // Support OpenAI and Ollama non-streaming shapes
             const content =
                 data.choices?.[0]?.message?.content ??
-                data.choices?.[0]?.text ?? '';
+                data.choices?.[0]?.text ??
+                data.message?.content ??
+                data.response ?? '';
             console.log("[API] JSON response:", data);
             onUpdate(content);
             onFinish(content, null);
