@@ -77,8 +77,8 @@
 
               <!-- Mode toggle and status (shared by both modes) -->
               <div class="mode-controls" style="margin-top: 10px;">
+                <span id="mode-status" style="margin-right: 8px; font-weight: bold;">Local Mode</span>
                 <button id="toggle-api">Switch to API Mode</button>
-                <span id="mode-status" style="margin-left: 8px; font-weight: bold;">Local Mode</span>
               </div>
 
               <!-- API configuration panel (visible only in API mode) -->
@@ -102,7 +102,7 @@
               </div>
 
            
-              <p>Step 1: Initialize WebLLM and Download Model</p>
+              <p class="local-only">Step 1: Initialize WebLLM and Download Model</p>
               <!-- Local-only controls; hidden when API mode is enabled -->
               <div class="download-container local-only">
                 <select id="model-selection"></select>

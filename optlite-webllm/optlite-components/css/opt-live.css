@@ -243,5 +243,5 @@ div.ExecutionVisualizer #dataViz {
 
 /* Make the API mode toggle button wider so long labels fit */
 #toggle-api {
-  min-width: 220px; /* fits "Switch to Local Mode" comfortably */
+  min-width: 160px; /* fits "Switch to Local Mode" comfortably */
 }
