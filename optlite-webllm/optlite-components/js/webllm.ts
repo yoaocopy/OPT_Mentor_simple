@@ -4,9 +4,9 @@ import { OptFrontend } from './opt-frontend';
 /*************** API Configuration ***************/
 const API_CONFIG = {
     enabled: false, // Whether to use API mode instead of local WebLLM
-    baseUrl: "https://ollama.optmentor.webllm.art/v1", // API server base URL
-    apiKey: "", // API key for authentication
-    model: "sft_model_1.5B_f16" // Model name for API calls
+    baseUrl: "API server address", // API server base URL
+    apiKey: "API key", // API key for authentication
+    model: ".5B_f16" // Model name for API calls
 };
 
 // Keep a copy of defaults for reset
