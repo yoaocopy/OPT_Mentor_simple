@@ -4,9 +4,9 @@ import { OptFrontend } from './opt-frontend';
 /*************** API Configuration ***************/
 const API_CONFIG = {
     enabled: false, // Whether to use API mode instead of local WebLLM
-    baseUrl: "http://localhost:5000/api", // API server base URL
+    baseUrl: "https://ollama.optmentor.webllm.art/v1", // API server base URL
     apiKey: "", // Optional API key for authentication
-    model: "gpt-3.5-turbo" // Model name for API calls
+    model: "sft_model_1.5B_f16" // Model name for API calls
 };
 
 /*************** WebLLM logic ***************/
@@ -51,6 +51,8 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                // Prefer SSE, but allow JSON fallback
+                'Accept': 'text/event-stream, application/json',
                 ...(API_CONFIG.apiKey && { 'Authorization': `Bearer ${API_CONFIG.apiKey}` })
             },
             body: JSON.stringify({
@@ -66,39 +68,70 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let fullResponse = '';
+        const contentType = response.headers.get('content-type') || '';
+        // Log basic response meta for debugging
+        console.log("[API] Response content-type:", contentType);
+        // If server supports SSE streaming (OpenAI-compatible), handle stream
+        if (contentType.includes('text/event-stream')) {
+            const reader = response.body!.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let fullResponse = '';
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop(); // Keep the last incomplete line
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep the last incomplete line
 
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const data = line.slice(6);
+                for (const rawLine of lines) {
+                    const line = rawLine.trim();
+                    // Skip keepalive comments like ": ping"
+                    if (!line || line.startsWith(':')) continue;
+                    if (!line.startsWith('data:')) continue;
+
+                    const data = line.slice(5).trim();
                     if (data === '[DONE]') {
                         onFinish(fullResponse, null);
                         return;
                     }
-                    
+
                     try {
                         const parsed = JSON.parse(data);
-                        const content = parsed.choices?.[0]?.delta?.content;
-                        if (content) {
-                            fullResponse += content;
+                        const choice = parsed.choices?.[0];
+                        const delta = choice?.delta?.content;
+                        if (delta) {
+                            fullResponse += delta;
                             onUpdate(fullResponse);
+                            // Log incremental delta to console
+                            console.debug("[API] Stream delta:", delta);
                         }
-                    } catch (e) {
-                        // Ignore parsing errors
+                        // Some servers send finish_reason in the final chunk
+                        if (choice?.finish_reason) {
+                            console.log("[API] Stream finished with reason:", choice.finish_reason);
+                            onFinish(fullResponse, null);
+                            return;
+                        }
+                    } catch {
+                        // Ignore non-JSON heartbeats or partial lines
                     }
                 }
             }
+            // Stream ended gracefully without explicit [DONE]
+            console.log("[API] Stream ended. Final response:", fullResponse);
+            onFinish(fullResponse, null);
+        } else {
+            // Fallback: non-streaming JSON response
+            const data = await response.json();
+            const content =
+                data.choices?.[0]?.message?.content ??
+                data.choices?.[0]?.text ?? '';
+            console.log("[API] JSON response:", data);
+            onUpdate(content);
+            onFinish(content, null);
+            return;
         }
     } catch (err) {
         onError(err);
@@ -128,8 +161,16 @@ async function streamingGenerating(messages, onUpdate, onFinish, onError) {
                 usage = chunk.usage;
             }
             onUpdate(curMessage);
+            // Log incremental delta for local WebLLM
+            if (curDelta) {
+                console.debug("[Local] Stream delta:", curDelta);
+            }
         }
         const finalMessage = await engine.getMessage();
+        console.log("[Local] Final response:", finalMessage);
+        if (usage) {
+            console.log("[Local] Usage:", usage);
+        }
         onFinish(finalMessage, usage);
     } catch (err) {
         onError(err);
