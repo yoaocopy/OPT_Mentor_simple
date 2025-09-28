@@ -9,6 +9,9 @@ const API_CONFIG = {
     model: "sft_model_1.5B_f16" // Model name for API calls
 };
 
+// Keep a copy of defaults for reset
+const DEFAULT_API_CONFIG = { ...API_CONFIG };
+
 /*************** WebLLM logic ***************/
 const messages = [
     {
@@ -388,29 +391,15 @@ function updateUIElements() {
 }
 
 /*************** Configuration Management ***************/
-function saveAPIConfig() {
-    const urlInput = document.getElementById("api-url") as HTMLInputElement;
-    const keyInput = document.getElementById("api-key") as HTMLInputElement;
-    const modelInput = document.getElementById("api-model") as HTMLInputElement;
-    
-    // Only overwrite runtime values when user actually typed something
-    const urlVal = urlInput?.value?.trim();
-    const keyVal = keyInput?.value?.trim();
-    const modelVal = modelInput?.value?.trim();
-
-    if (urlVal) API_CONFIG.baseUrl = urlVal;
-    if (keyVal !== undefined) API_CONFIG.apiKey = keyVal; // allow empty to clear key explicitly
-    if (modelVal) API_CONFIG.model = modelVal;
-    
+// Persist current runtime settings to localStorage (called on each change)
+function persistAPIConfig() {
     const configToSave = {
         enabled: API_CONFIG.enabled,
         baseUrl: API_CONFIG.baseUrl,
         apiKey: API_CONFIG.apiKey,
         model: API_CONFIG.model
     };
-    
     localStorage.setItem('api_config', JSON.stringify(configToSave));
-    console.log("API configuration saved:", configToSave);
 }
 
 function loadAPIConfig() {
@@ -438,6 +427,46 @@ function loadAPIConfig() {
     if (modelInput) modelInput.value = API_CONFIG.model;
 }
 
+// Bind input fields so changes take effect immediately
+function bindAPIInputsImmediate() {
+    const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
+    const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
+    const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+    if (urlInput) {
+        urlInput.addEventListener('input', () => {
+            API_CONFIG.baseUrl = urlInput.value.trim();
+            persistAPIConfig();
+        });
+    }
+    if (keyInput) {
+        keyInput.addEventListener('input', () => {
+            API_CONFIG.apiKey = keyInput.value; // allow empty to clear
+            persistAPIConfig();
+        });
+    }
+    if (modelInput) {
+        modelInput.addEventListener('input', () => {
+            API_CONFIG.model = modelInput.value.trim();
+            persistAPIConfig();
+        });
+    }
+}
+
+// Reset API settings back to defaults
+function resetAPIConfigToDefaults() {
+    API_CONFIG.baseUrl = DEFAULT_API_CONFIG.baseUrl;
+    API_CONFIG.apiKey = DEFAULT_API_CONFIG.apiKey;
+    API_CONFIG.model = DEFAULT_API_CONFIG.model;
+    // reflect to inputs
+    const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
+    const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
+    const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+    if (urlInput) urlInput.value = API_CONFIG.baseUrl;
+    if (keyInput) keyInput.value = API_CONFIG.apiKey;
+    if (modelInput) modelInput.value = API_CONFIG.model;
+    persistAPIConfig();
+}
+
 /*************** Event Listeners ***************/
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize error observer
@@ -445,6 +474,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load API configuration
     loadAPIConfig();
+    // Bind inputs for immediate effect
+    bindAPIInputsImmediate();
     
     // If user switches to API mode for the first time in this browser session,
     // use the in-code defaults immediately (so displayed values match actual usage)
@@ -466,10 +497,10 @@ document.addEventListener('DOMContentLoaded', function() {
     updateModeDisplay();
     updateUIElements();
     
-    // Bind API configuration save button
-    const saveBtn = document.getElementById("save-api-config");
-    if (saveBtn) {
-        saveBtn.addEventListener("click", saveAPIConfig);
+    // Bind API configuration reset button
+    const resetBtn = document.getElementById("reset-api-config");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", resetAPIConfigToDefaults);
     }
     
     // Bind mode toggle button (actual toggle)
