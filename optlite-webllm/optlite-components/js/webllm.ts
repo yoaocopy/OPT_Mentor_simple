@@ -354,7 +354,7 @@ function toggleAPIMode() {
     API_CONFIG.enabled = !API_CONFIG.enabled;
     updateModeDisplay();
     updateUIElements();
-    saveAPIConfig(); // Save the mode preference
+    persistAPIConfig(); // Save the mode preference immediately
 }
 
 function updateModeDisplay() {
