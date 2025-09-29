@@ -45,6 +45,8 @@ async function initializeWebLLMEngine() {
     const config = {
         temperature: 1.0,
         top_p: 1,
+        max_tokens: 512,
+        stop: ["<|endoftext|>", "<|im_end|>"]
     };
     await engine.reload(selectedModel, config);
     // Mark engine as ready after successful reload
