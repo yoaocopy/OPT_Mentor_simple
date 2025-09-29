@@ -6,7 +6,7 @@ const API_CONFIG = {
     enabled: false, // Whether to use API mode instead of local WebLLM
     baseUrl: "API server address", // API server base URL
     apiKey: "API key", // API key for authentication
-    model: ".5B_f16" // Model name for API calls
+    model: "" // Model name for API calls
 };
 
 // Keep a copy of defaults for reset
@@ -34,6 +34,8 @@ function updateEngineInitProgressCallback(report) {
 // Create engine instance
 const engine = new webllm.MLCEngine();
 engine.setInitProgressCallback(updateEngineInitProgressCallback);
+// Track if the local WebLLM engine has finished loading a model
+let isEngineReady = false;
 
 async function initializeWebLLMEngine() {
     document.getElementById("chat-stats").classList.add("hidden");
@@ -45,6 +47,8 @@ async function initializeWebLLMEngine() {
         top_p: 1,
     };
     await engine.reload(selectedModel, config);
+    // Mark engine as ready after successful reload
+    isEngineReady = true;
 }
 
 /*************** API Calling Functions ***************/
@@ -384,8 +388,8 @@ function updateUIElements() {
             // In API mode, enable Ask AI button immediately
             askAIButton.disabled = false;
         } else {
-            // In local mode, keep the original behavior (disabled until model is downloaded)
-            askAIButton.disabled = true;
+            // In local mode, enable only if engine is ready (model pulled)
+            askAIButton.disabled = !isEngineReady;
         }
     }
 }
