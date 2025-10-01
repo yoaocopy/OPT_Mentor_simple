@@ -398,11 +398,11 @@ function updateUIElements() {
 
     localElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "none" : "block");
     if (hideApiPanel) {
-        // Only hide the API configuration panel area; keep reset group visible
+        // Only hide the API configuration panel area; reset group still follows mode
         const apiPanels = document.querySelectorAll('.api-only.api-panel');
         apiPanels.forEach(el => (el as HTMLElement).style.display = 'none');
         const apiResetGroup = document.getElementById('api-reset-group');
-        if (apiResetGroup) (apiResetGroup as HTMLElement).style.display = 'block';
+        if (apiResetGroup) (apiResetGroup as HTMLElement).style.display = API_CONFIG.enabled ? 'block' : 'none';
     } else {
         apiElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "block" : "none");
     }
