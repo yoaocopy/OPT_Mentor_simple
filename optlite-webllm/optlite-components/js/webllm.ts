@@ -398,7 +398,11 @@ function updateUIElements() {
 
     localElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "none" : "block");
     if (hideApiPanel) {
-        apiElements.forEach(el => (el as HTMLElement).style.display = "none");
+        // Only hide the API configuration panel area; keep reset group visible
+        const apiPanels = document.querySelectorAll('.api-only.api-panel');
+        apiPanels.forEach(el => (el as HTMLElement).style.display = 'none');
+        const apiResetGroup = document.getElementById('api-reset-group');
+        if (apiResetGroup) (apiResetGroup as HTMLElement).style.display = 'block';
     } else {
         apiElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "block" : "none");
     }
@@ -457,11 +461,6 @@ function loadAPIConfig() {
     if (w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
     if (w.API_KEY !== undefined) API_CONFIG.apiKey = w.API_KEY;
     if (w.API_MODEL) API_CONFIG.model = w.API_MODEL;
-    // Optionally hide API panel entirely (but keep mode toggle intact)
-    if (w.API_HIDE_API_PANEL) {
-        const apiPanel = document.querySelector('.api-only') as HTMLElement | null;
-        if (apiPanel) apiPanel.style.display = 'none';
-    }
 }
 
 // Bind input fields so changes take effect immediately
