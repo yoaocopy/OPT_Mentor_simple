@@ -241,13 +241,13 @@ function onMessageSend(input) {
         
         // Show usage stats only if available (local mode)
         if (usage && usage.prompt_tokens) {
-            const usageText =
-            `prompt_tokens: ${usage.prompt_tokens}, ` +
-            `completion_tokens: ${usage.completion_tokens}, ` +
-            `prefill: ${usage.extra.prefill_tokens_per_s.toFixed(4)} tokens/sec, ` +
-            `decoding: ${usage.extra.decode_tokens_per_s.toFixed(4)} tokens/sec`;
-            document.getElementById("chat-stats").classList.remove("hidden");
-            document.getElementById("chat-stats").textContent = usageText;
+        const usageText =
+        `prompt_tokens: ${usage.prompt_tokens}, ` +
+        `completion_tokens: ${usage.completion_tokens}, ` +
+        `prefill: ${usage.extra.prefill_tokens_per_s.toFixed(4)} tokens/sec, ` +
+        `decoding: ${usage.extra.decode_tokens_per_s.toFixed(4)} tokens/sec`;
+        document.getElementById("chat-stats").classList.remove("hidden");
+        document.getElementById("chat-stats").textContent = usageText;
         } else {
             // Hide usage stats for API mode
             document.getElementById("chat-stats").classList.add("hidden");
@@ -506,7 +506,61 @@ document.addEventListener('DOMContentLoaded', function() {
     // Bind API configuration reset button
     const resetBtn = document.getElementById("reset-api-config");
     if (resetBtn) {
-        resetBtn.addEventListener("click", resetAPIConfigToDefaults);
+        resetBtn.addEventListener("click", () => {
+            // Ask for confirmation before restoring defaults
+            if (confirm("Reset API config to defaults? This will overwrite current values.")) {
+                resetAPIConfigToDefaults();
+            }
+        });
+    }
+
+    // Bind local reset: clear caches and refresh to initial state
+    const resetLocalBtn = document.getElementById("reset-local");
+    if (resetLocalBtn) {
+        resetLocalBtn.addEventListener("click", async () => {
+            if (!confirm("Reset local model state and refresh? Cached models will be cleared.")) {
+                return;
+            }
+            try {
+                // Clear model artifacts cached by Cache API / IndexedDB
+                // WebLLM uses Cache API by default unless configured; attempt both.
+                if ('caches' in window) {
+                    const names = await caches.keys();
+                    await Promise.all(names.map(n => caches.delete(n)));
+                }
+                // Clear IndexedDB databases commonly used by WebLLM/TVM
+                if ('indexedDB' in window) {
+                    // Best-effort deletes; ignore failures if DBs don't exist
+                    const dbs = ['webllm-cache', 'mlc-cache', 'tvmjs', 'webgpu-cache'];
+                    await Promise.allSettled(dbs.map(name => new Promise<void>((resolve) => {
+                        const req = indexedDB.deleteDatabase(name);
+                        req.onsuccess = () => resolve();
+                        req.onerror = () => resolve();
+                        req.onblocked = () => resolve();
+                    })));
+                }
+                // Also clear our app's localStorage config if desired
+                localStorage.removeItem('api_config');
+            } finally {
+                // Reload page to initial state
+                window.location.reload();
+            }
+        });
+    }
+
+    // Bind API state reset: clear saved API config and refresh
+    const resetApiStateBtn = document.getElementById("reset-api-state");
+    if (resetApiStateBtn) {
+        resetApiStateBtn.addEventListener("click", async () => {
+            if (!confirm("Reset saved API state and refresh? This clears saved baseUrl, key, and model.")) {
+                return;
+            }
+            try {
+                localStorage.removeItem('api_config');
+            } finally {
+                window.location.reload();
+            }
+        });
     }
     
     // Bind mode toggle button (actual toggle)

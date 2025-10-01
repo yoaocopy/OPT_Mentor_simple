@@ -79,8 +79,8 @@
               <div class="mode-controls" style="margin-top: 10px;">
                 <span id="mode-status" style="margin-right: 8px; font-weight: bold;">Local Mode</span>
                 <button id="toggle-api">Switch to API Mode</button>
-                              <!-- Reverse action: go back to visualize (index) with current state -->
-                <button id="visualizeBtn" class="smallBtn" type="button" style="margin-left: 8px;">Visualize</button>
+                <!-- Reverse action: go back to visualize (index) with current state -->
+              <button id="visualizeBtn" class="smallBtn" type="button"  title="Open the visualize page with the code currently in the editor">Visualize</button>
               </div>
 
 
@@ -101,7 +101,7 @@
                     <label for="api-model">Model Name</label>
                     <input type="text" id="api-model" placeholder="" style="width: 100%; box-sizing: border-box;">
                   </div>
-                  <button id="reset-api-config"; style="display: none;">Reset API Config</button>
+                  <!-- reset buttons moved to the bottom of the page -->
                 </div>
               </div>
 
@@ -126,6 +126,20 @@
                   <button id="send" disabled>Send</button>
                 </div>
               </div> -->
+            </div>
+
+            <!-- Spacer to leave several lines before bottom controls -->
+            <div style="height: 48px;"></div>
+
+            <!-- Bottom controls: reset buttons for both modes, right-aligned -->
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+              <div class="local-only">
+                <button id="reset-local" class="smallBtn" type="button">Reset Local State</button>
+              </div>
+              <div class="api-only" style="display: none;">
+                <button id="reset-api-config" class="smallBtn" type="button" style="display: inline-block;">Reset API Config</button>
+                <button id="reset-api-state" class="smallBtn" type="button">Reset API State</button>
+              </div>
             </div>
 
 
