@@ -19,6 +19,22 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # # Toggle whether to inject API config at build time
+      # INJECT_API_CONFIG: ${{ inputs.inject_api_config || 'false' }}
+      # # Values used when INJECT_API_CONFIG is true (can also come from secrets)
+      # API_BASE_URL: ${{ inputs.api_base_url || secrets.API_BASE_URL }}
+      # API_KEY: ${{ inputs.api_key || secrets.API_KEY }}
+      # API_MODEL: ${{ inputs.api_model || secrets.API_MODEL }}
+      # # Hide API config panel on UI (still keeps mode toggle)
+      # API_HIDE_API_PANEL: ${{ inputs.api_hide_api_panel || 'false' }}
+
+      INJECT_API_CONFIG: 'false'         # whether to inject API information here
+      API_BASE_URL: 'https://your.api/v1'
+      API_KEY: 'your-api-key'           # be care
+      API_MODEL: 'sft_model_1.5B_f16'
+      API_HIDE_API_PANEL: 'false'        # whether to hide the api panel
+
     
     steps:
     - name: Checkout

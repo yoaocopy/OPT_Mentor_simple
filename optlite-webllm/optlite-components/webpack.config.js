@@ -4,6 +4,18 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 // var WebpackOnBuildPlugin = require('on-build-webpack');
 // var exec = require('child_process').exec;
 
+// Build-time injection via environment variables (set in CI)
+const injectApi = String(process.env.INJECT_API_CONFIG || '').toLowerCase() === 'true';
+const hideApiPanel = String(process.env.API_HIDE_API_PANEL || '').toLowerCase() === 'true';
+const windowVars = {};
+if (injectApi) {
+  if (process.env.API_BASE_URL) windowVars.API_BASE_URL = process.env.API_BASE_URL;
+  if (process.env.API_KEY !== undefined) windowVars.API_KEY = process.env.API_KEY;
+  if (process.env.API_MODEL) windowVars.API_MODEL = process.env.API_MODEL;
+}
+// Always inject this flag so the UI can decide whether to show API panel
+windowVars.API_HIDE_API_PANEL = hideApiPanel;
+
 module.exports = {
     plugins: [
       // http://stackoverflow.com/questions/29080148/expose-jquery-to-real-window-object-with-webpack
@@ -19,13 +31,15 @@ module.exports = {
         filename: "index.html",
         title: 'Visualize Python Code Execution',
         chunks: ['visualize'],
-        template: './js/template/visualize.html'
+        template: './js/template/visualize.html',
+        window: windowVars,
       }),
       new HtmlWebpackPlugin({
         filename: "live.html",
         title: 'Live Python Programming Mode',
         chunks: ['opt-live'],
-        template: './js/template/live.html'
+        template: './js/template/live.html',
+        window: windowVars,
       })
       // run a micro frontend regression test after every webpack build
       // to sanity-check

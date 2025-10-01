@@ -15,10 +15,10 @@ const DEFAULT_API_CONFIG = { ...API_CONFIG };
 // Promise.allSettled compatibility for environments targeting < ES2020
 function promiseAllSettledCompat<T>(promises: Array<Promise<T>>): Promise<Array<{ status: 'fulfilled' | 'rejected'; value?: T; reason?: any }>> {
     return Promise.all(
-        promises.map((p) =>
+        promises.map((p): Promise<{ status: 'fulfilled' | 'rejected'; value?: T; reason?: any }> =>
             p.then(
-                (value) => ({ status: 'fulfilled', value }),
-                (reason) => ({ status: 'rejected', reason }),
+                (value) => ({ status: 'fulfilled' as const, value }),
+                (reason) => ({ status: 'rejected' as const, reason }),
             ),
         ),
     );
@@ -443,6 +443,17 @@ function loadAPIConfig() {
     if (urlInput) urlInput.value = API_CONFIG.baseUrl;
     if (keyInput) keyInput.value = API_CONFIG.apiKey;
     if (modelInput) modelInput.value = API_CONFIG.model;
+
+    // Build-time overrides injected by webpack (via HtmlWebpackPlugin window)
+    const w = (window as any) || {};
+    if (w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
+    if (w.API_KEY !== undefined) API_CONFIG.apiKey = w.API_KEY;
+    if (w.API_MODEL) API_CONFIG.model = w.API_MODEL;
+    // Optionally hide API panel entirely (but keep mode toggle intact)
+    if (w.API_HIDE_API_PANEL) {
+        const apiPanel = document.querySelector('.api-only') as HTMLElement | null;
+        if (apiPanel) apiPanel.style.display = 'none';
+    }
 }
 
 // Bind input fields so changes take effect immediately
