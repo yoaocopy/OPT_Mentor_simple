@@ -392,8 +392,16 @@ function updateUIElements() {
     const localElements = document.querySelectorAll(".local-only");
     const apiElements = document.querySelectorAll(".api-only");
     
+    // Respect build-time flag to hide API panel entirely
+    const w: any = (window as any) || {};
+    const hideApiPanel: boolean = !!w.API_HIDE_API_PANEL;
+
     localElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "none" : "block");
-    apiElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "block" : "none");
+    if (hideApiPanel) {
+        apiElements.forEach(el => (el as HTMLElement).style.display = "none");
+    } else {
+        apiElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "block" : "none");
+    }
     
     // Enable/disable Ask AI button based on mode
     const askAIButton = document.getElementById("askAI") as HTMLButtonElement;
