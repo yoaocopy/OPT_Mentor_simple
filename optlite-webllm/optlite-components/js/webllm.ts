@@ -4,8 +4,8 @@ import { OptFrontend } from './opt-frontend';
 /*************** API Configuration ***************/
 const API_CONFIG = {
     enabled: false, // Whether to use API mode instead of local WebLLM
-    baseUrl: "API server address", // API server base URL
-    apiKey: "API key", // API key for authentication
+    baseUrl: "", // API server base URL
+    apiKey: "", // API key for authentication
     model: "" // Model name for API calls
 };
 

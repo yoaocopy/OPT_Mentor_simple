@@ -29,7 +29,7 @@ jobs:
       # # Hide API config panel on UI (still keeps mode toggle)
       # API_HIDE_API_PANEL: ${{ inputs.api_hide_api_panel || 'false' }}
 
-      INJECT_API_CONFIG: 'false'         # whether to inject API information here
+      INJECT_API_CONFIG: 'true'         # whether to inject API information here
       API_BASE_URL: 'https://your.api/v1'
       API_KEY: 'your-api-key'           # be care
       API_MODEL: 'sft_model_1.5B_f16'
