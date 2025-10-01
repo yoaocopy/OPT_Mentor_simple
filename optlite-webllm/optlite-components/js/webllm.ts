@@ -12,6 +12,18 @@ const API_CONFIG = {
 // Keep a copy of defaults for reset
 const DEFAULT_API_CONFIG = { ...API_CONFIG };
 
+// Promise.allSettled compatibility for environments targeting < ES2020
+function promiseAllSettledCompat<T>(promises: Array<Promise<T>>): Promise<Array<{ status: 'fulfilled' | 'rejected'; value?: T; reason?: any }>> {
+    return Promise.all(
+        promises.map((p) =>
+            p.then(
+                (value) => ({ status: 'fulfilled', value }),
+                (reason) => ({ status: 'rejected', reason }),
+            ),
+        ),
+    );
+}
+
 /*************** WebLLM logic ***************/
 const messages = [
     {
@@ -532,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if ('indexedDB' in window) {
                     // Best-effort deletes; ignore failures if DBs don't exist
                     const dbs = ['webllm-cache', 'mlc-cache', 'tvmjs', 'webgpu-cache'];
-                    await Promise.allSettled(dbs.map(name => new Promise<void>((resolve) => {
+                    await promiseAllSettledCompat(dbs.map(name => new Promise<void>((resolve) => {
                         const req = indexedDB.deleteDatabase(name);
                         req.onsuccess = () => resolve();
                         req.onerror = () => resolve();
