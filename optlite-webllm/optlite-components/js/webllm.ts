@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (resetBtn) {
         resetBtn.addEventListener("click", () => {
             // Ask for confirmation before restoring defaults
-            if (confirm("Reset API config to defaults? This will overwrite current values.")) {
+            if (confirm("Reset API config to defaults from the webpage source file? This will overwrite current values.")) {
                 resetAPIConfigToDefaults();
             }
         });

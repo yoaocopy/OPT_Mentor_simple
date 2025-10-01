@@ -33,7 +33,7 @@ jobs:
       API_BASE_URL: 'https://your.api/v1'
       API_KEY: 'your-api-key'           # be care
       API_MODEL: 'sft_model_1.5B_f16'
-      API_HIDE_API_PANEL: 'false'        # whether to hide the api panel
+      API_HIDE_API_PANEL: 'true'        # whether to hide the api panel
 
     
     steps:
