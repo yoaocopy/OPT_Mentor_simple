@@ -448,6 +448,13 @@ function loadAPIConfig() {
         }
     }
 
+
+    // Build-time overrides injected by webpack (via HtmlWebpackPlugin window)
+    const w = (window as any) || {};
+    if (w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
+    if (w.API_KEY !== undefined) API_CONFIG.apiKey = w.API_KEY;
+    if (w.API_MODEL) API_CONFIG.model = w.API_MODEL;
+
     // Always reflect current runtime values into inputs on first load
     const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
     const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
@@ -456,11 +463,6 @@ function loadAPIConfig() {
     if (keyInput) keyInput.value = API_CONFIG.apiKey;
     if (modelInput) modelInput.value = API_CONFIG.model;
 
-    // Build-time overrides injected by webpack (via HtmlWebpackPlugin window)
-    const w = (window as any) || {};
-    if (w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
-    if (w.API_KEY !== undefined) API_CONFIG.apiKey = w.API_KEY;
-    if (w.API_MODEL) API_CONFIG.model = w.API_MODEL;
 }
 
 // Bind input fields so changes take effect immediately
