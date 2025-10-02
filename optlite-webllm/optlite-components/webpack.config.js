@@ -6,8 +6,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // Build-time injection via environment variables (set in CI)
 const injectApi = String(process.env.INJECT_API_CONFIG || '').toLowerCase() === 'true';
-// Allow API_HIDE_API_PANEL to inherit INJECT_API_CONFIG when not explicitly set
-const hideApiPanel = String((process.env.API_HIDE_API_PANEL ?? process.env.INJECT_API_CONFIG) || '').toLowerCase() === 'true';
+// Inherit from INJECT_API_CONFIG when API_HIDE_API_PANEL is empty string or unset
+const hideApiPanel = String(process.env.API_HIDE_API_PANEL || process.env.INJECT_API_CONFIG || '').toLowerCase() === 'true';
 const windowVars = {};
 if (injectApi) {
   if (process.env.API_BASE_URL) windowVars.API_BASE_URL = process.env.API_BASE_URL;
