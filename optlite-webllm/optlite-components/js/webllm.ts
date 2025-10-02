@@ -423,6 +423,10 @@ function updateUIElements() {
 /*************** Configuration Management ***************/
 // Persist current runtime settings to localStorage (called on each change)
 function persistAPIConfig() {
+    const w = (window as any) || {};
+    if (w.API_HIDE_API_PANEL) {
+        return;
+    }
     const configToSave = {
         enabled: API_CONFIG.enabled,
         baseUrl: API_CONFIG.baseUrl,
@@ -433,35 +437,39 @@ function persistAPIConfig() {
 }
 
 function loadAPIConfig() {
-    const saved = localStorage.getItem('api_config');
-    if (saved) {
-        try {
-            const config = JSON.parse(saved);
-            API_CONFIG.enabled = (config.enabled ?? API_CONFIG.enabled);
-            API_CONFIG.baseUrl = (config.baseUrl ?? API_CONFIG.baseUrl);
-            API_CONFIG.apiKey = (config.apiKey ?? API_CONFIG.apiKey);
-            API_CONFIG.model = (config.model ?? API_CONFIG.model);
-            
-            console.log("API configuration loaded:", config);
-        } catch (e) {
-            console.error("Failed to load API configuration:", e);
-        }
-    }
-
-
     // Build-time overrides injected by webpack (via HtmlWebpackPlugin window)
     const w = (window as any) || {};
+    const hidePanel = !!w.API_HIDE_API_PANEL;
+    if (!hidePanel) {
+        const saved = localStorage.getItem('api_config');
+        if (saved) {
+            try {
+                const config = JSON.parse(saved);
+                API_CONFIG.enabled = (config.enabled ?? API_CONFIG.enabled);
+                API_CONFIG.baseUrl = (config.baseUrl ?? API_CONFIG.baseUrl);
+                API_CONFIG.apiKey = (config.apiKey ?? API_CONFIG.apiKey);
+                API_CONFIG.model = (config.model ?? API_CONFIG.model);
+                console.log("API configuration loaded:", config);
+            } catch (e) {
+                console.error("Failed to load API configuration:", e);
+            }
+        }
+    } else {
+        localStorage.removeItem('api_config');
+    }
     if (w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
     if (w.API_KEY !== undefined) API_CONFIG.apiKey = w.API_KEY;
     if (w.API_MODEL) API_CONFIG.model = w.API_MODEL;
 
-    // Always reflect current runtime values into inputs on first load
-    const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
-    const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
-    const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
-    if (urlInput) urlInput.value = API_CONFIG.baseUrl;
-    if (keyInput) keyInput.value = API_CONFIG.apiKey;
-    if (modelInput) modelInput.value = API_CONFIG.model;
+    // Reflect runtime values into inputs only if panel is visible
+    if (!hidePanel) {
+        const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
+        const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
+        const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+        if (urlInput) urlInput.value = API_CONFIG.baseUrl;
+        if (keyInput) keyInput.value = API_CONFIG.apiKey;
+        if (modelInput) modelInput.value = API_CONFIG.model;
+    }
 
 }
 
@@ -470,6 +478,10 @@ function bindAPIInputsImmediate() {
     const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
     const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
     const modelInput = document.getElementById("api-model") as HTMLInputElement | null;
+    const w = (window as any) || {};
+    if (w.API_HIDE_API_PANEL) {
+        return;
+    }
     if (urlInput) {
         urlInput.addEventListener('input', () => {
             API_CONFIG.baseUrl = urlInput.value.trim();
