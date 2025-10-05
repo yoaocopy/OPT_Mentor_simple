@@ -401,7 +401,7 @@ function updateUIElements() {
     
     // Respect build-time flag to hide API panel entirely
     const w: any = (window as any) || {};
-    const hideApiPanel: boolean = !!w.API_HIDE_API_PANEL;
+    const hideApiPanel: boolean = (typeof __API_HIDE_API_PANEL__ !== 'undefined') ? (!!__API_HIDE_API_PANEL__) : (!!w.API_HIDE_API_PANEL);
 
     localElements.forEach(el => (el as HTMLElement).style.display = API_CONFIG.enabled ? "none" : "block");
     if (hideApiPanel) {
