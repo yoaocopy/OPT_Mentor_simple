@@ -9,14 +9,15 @@ const injectApi = String(process.env.INJECT_API_CONFIG || '').toLowerCase() === 
 // Inherit from INJECT_API_CONFIG when API_HIDE_API_PANEL is empty string or unset
 const hideApiPanel = String(process.env.API_HIDE_API_PANEL || process.env.INJECT_API_CONFIG || '').toLowerCase() === 'true';
 const injectTarget = String(process.env.API_INJECT_TARGET || 'window').toLowerCase();
-const windowVars = {};
-if (injectApi) {
-  if (process.env.API_BASE_URL) windowVars.API_BASE_URL = process.env.API_BASE_URL;
-  if (process.env.API_KEY !== undefined) windowVars.API_KEY = process.env.API_KEY;
-  if (process.env.API_MODEL) windowVars.API_MODEL = process.env.API_MODEL;
-}
-// Always inject this flag so the UI can decide whether to show API panel
-windowVars.API_HIDE_API_PANEL = hideApiPanel;
+// Build window variables only when targeting window injection; otherwise leave undefined
+const windowVars = (injectApi && injectTarget === 'window') ? {
+  // Only include non-empty values; API_KEY respects empty string to allow clearing
+  ...(process.env.API_BASE_URL ? { API_BASE_URL: String(process.env.API_BASE_URL).trim() } : {}),
+  ...(process.env.API_KEY !== undefined ? { API_KEY: process.env.API_KEY } : {}),
+  ...(process.env.API_MODEL ? { API_MODEL: String(process.env.API_MODEL).trim() } : {}),
+  // UI-only flag controlling whether to show the API panel
+  API_HIDE_API_PANEL: hideApiPanel,
+} : undefined;
 
 // Build-time JS define injection when API_INJECT_TARGET === 'define'
 const defineReplacements = {};
@@ -25,6 +26,8 @@ if (injectApi && injectTarget === 'define') {
   defineReplacements.__API_KEY__ = JSON.stringify(process.env.API_KEY || '');
   defineReplacements.__API_MODEL__ = JSON.stringify(process.env.API_MODEL || '');
   defineReplacements.__API_DEFAULT_MODE__ = JSON.stringify(process.env.API_DEFAULT_MODE || '');
+  // Also expose the UI-only flag via define to keep behavior consistent with window mode
+  defineReplacements.__API_HIDE_API_PANEL__ = JSON.stringify(hideApiPanel);
 }
 
 module.exports = {
@@ -43,14 +46,14 @@ module.exports = {
         title: 'Visualize Python Code Execution',
         chunks: ['visualize'],
         template: './js/template/visualize.html',
-        window: injectTarget === 'window' ? windowVars : undefined,
+        window: windowVars,
       }),
       new HtmlWebpackPlugin({
         filename: "live.html",
         title: 'Live Python Programming Mode',
         chunks: ['opt-live'],
         template: './js/template/live.html',
-        window: injectTarget === 'window' ? windowVars : undefined,
+        window: windowVars,
       }),
       ...(injectTarget === 'define' ? [new webpack.DefinePlugin(defineReplacements)] : [])
       // run a micro frontend regression test after every webpack build

@@ -22,6 +22,8 @@ jobs:
     env:
       # # Toggle whether to inject API config at build time
       # INJECT_API_CONFIG: ${{ inputs.inject_api_config || 'false' }}
+      # # Where to inject
+      # API_INJECT_TARGET: ${{ inputs.api_inject_target || 'window' }}
       # # Values used when INJECT_API_CONFIG is true (can also come from secrets)
       # API_BASE_URL: ${{ inputs.api_base_url || secrets.API_BASE_URL }}
       # API_KEY: ${{ inputs.api_key || secrets.API_KEY }}
@@ -30,10 +32,11 @@ jobs:
       # API_HIDE_API_PANEL: ${{ inputs.api_hide_api_panel || 'false' }}
 
       INJECT_API_CONFIG: 'true'         # whether to inject API information here
+      API_INJECT_TARGET: 'define'   # or 'window'; 'define' means information injected to js, 'window' means injected to html source file with windowVars
       API_BASE_URL: 'https://your.api/v1'
       API_KEY: 'your-api-key'           # be care
       API_MODEL: 'sft_model_1.5B_f16'
-      # leave API_HIDE_API_PANEL blank, and then INJECT_API_CONFIG will decide whether hide the api panel
+      # leave API_HIDE_API_PANEL blank, and then INJECT_API_CONFIG will decide whether hide the api panel; otherwise the API information from localStorage (if not empty) will shadow the injection with windowVar
       API_HIDE_API_PANEL: ''        # whether to hide the api panel
 
     

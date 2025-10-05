@@ -3,15 +3,17 @@ declare const __API_BASE_URL__: string | undefined;
 declare const __API_KEY__: string | undefined;
 declare const __API_MODEL__: string | undefined;
 declare const __API_DEFAULT_MODE__: string | undefined;
+declare const __API_HIDE_API_PANEL__: string | boolean | undefined;
 import * as webllm from "../../webllm-components";
 import { OptFrontend } from './opt-frontend';
 
 /*************** API Configuration ***************/
 const API_CONFIG = {
-    enabled: false, // Whether to use API mode instead of local WebLLM
-    baseUrl: "", // API server base URL
-    apiKey: "", // API key for authentication
-    model: "" // Model name for API calls
+    // When DefinePlugin injects constants (API_INJECT_TARGET === 'define'), use them; otherwise fallback to defaults
+    enabled: (typeof __API_DEFAULT_MODE__ !== 'undefined' && __API_DEFAULT_MODE__ === 'api') ? true : false,
+    baseUrl: (typeof __API_BASE_URL__ !== 'undefined') ? __API_BASE_URL__ : "",
+    apiKey: (typeof __API_KEY__ !== 'undefined') ? __API_KEY__ : "",
+    model:  (typeof __API_MODEL__ !== 'undefined') ? __API_MODEL__ : ""
 };
 
 // Keep a copy of defaults for reset
@@ -442,15 +444,12 @@ function persistAPIConfig() {
 }
 
 function loadAPIConfig() {
-    // Build-time overrides via DefinePlugin (preferred when API_INJECT_TARGET === 'define')
-    if (typeof __API_BASE_URL__ !== 'undefined') API_CONFIG.baseUrl = __API_BASE_URL__;
-    if (typeof __API_KEY__ !== 'undefined') API_CONFIG.apiKey = __API_KEY__;
-    if (typeof __API_MODEL__ !== 'undefined') API_CONFIG.model = __API_MODEL__;
-    if (typeof __API_DEFAULT_MODE__ !== 'undefined' && __API_DEFAULT_MODE__ === 'api') API_CONFIG.enabled = true;
-
-    // Build-time overrides injected by HtmlWebpackPlugin window (when API_INJECT_TARGET === 'window')
     const w = (window as any) || {};
-    const hidePanel = !!w.API_HIDE_API_PANEL;
+    // Prefer define flag if present; otherwise fall back to window flag
+    const hidePanel = (typeof __API_HIDE_API_PANEL__ !== 'undefined') ? (!!__API_HIDE_API_PANEL__) : (!!w.API_HIDE_API_PANEL);
+
+    // 1) 未隐藏：优先读本地
+    let hadLocal = false;
     if (!hidePanel) {
         const saved = localStorage.getItem('api_config');
         if (saved) {
@@ -460,6 +459,7 @@ function loadAPIConfig() {
                 API_CONFIG.baseUrl = (config.baseUrl ?? API_CONFIG.baseUrl);
                 API_CONFIG.apiKey = (config.apiKey ?? API_CONFIG.apiKey);
                 API_CONFIG.model = (config.model ?? API_CONFIG.model);
+                hadLocal = !!(API_CONFIG.baseUrl || API_CONFIG.apiKey || API_CONFIG.model);
                 console.log("API configuration loaded:", config);
             } catch (e) {
                 console.error("Failed to load API configuration:", e);
@@ -468,11 +468,25 @@ function loadAPIConfig() {
     } else {
         localStorage.removeItem('api_config');
     }
-    if (w.API_BASE_URL) API_CONFIG.baseUrl = API_CONFIG.baseUrl || w.API_BASE_URL;
-    if (w.API_KEY !== undefined) API_CONFIG.apiKey = API_CONFIG.apiKey || w.API_KEY;
-    if (w.API_MODEL) API_CONFIG.model = API_CONFIG.model || w.API_MODEL;
 
-    // Reflect runtime values into inputs only if panel is visible
+    // 2) 本地为空：使用 define 或 window 注入
+    if (!hidePanel && !hadLocal && (!API_CONFIG.baseUrl && !API_CONFIG.apiKey && !API_CONFIG.model)) {
+        // define（API_INJECT_TARGET === 'define'）
+        if (typeof __API_BASE_URL__ !== 'undefined') API_CONFIG.baseUrl = __API_BASE_URL__;
+        if (typeof __API_KEY__ !== 'undefined') API_CONFIG.apiKey = __API_KEY__;
+        if (typeof __API_MODEL__ !== 'undefined') API_CONFIG.model = __API_MODEL__;
+        if (typeof __API_DEFAULT_MODE__ !== 'undefined' && __API_DEFAULT_MODE__ === 'api') API_CONFIG.enabled = true;
+        // window 兜底（API_INJECT_TARGET === 'window'）
+        if (!API_CONFIG.baseUrl && w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
+        if (!API_CONFIG.apiKey && (w.API_KEY !== undefined)) API_CONFIG.apiKey = w.API_KEY;
+        if (!API_CONFIG.model && w.API_MODEL) API_CONFIG.model = w.API_MODEL;
+        // 将注入值写入本地，后续优先本地
+        if (API_CONFIG.baseUrl || API_CONFIG.apiKey || API_CONFIG.model) {
+            persistAPIConfig();
+        }
+    }
+
+    // 3) 回显（仅未隐藏）
     if (!hidePanel) {
         const urlInput = document.getElementById("api-url") as HTMLInputElement | null;
         const keyInput = document.getElementById("api-key") as HTMLInputElement | null;
@@ -481,7 +495,6 @@ function loadAPIConfig() {
         if (keyInput) keyInput.value = API_CONFIG.apiKey;
         if (modelInput) modelInput.value = API_CONFIG.model;
     }
-
 }
 
 // Bind input fields so changes take effect immediately
