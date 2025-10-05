@@ -1,3 +1,8 @@
+// Optional build-time constants (injected when API_INJECT_TARGET === 'define')
+declare const __API_BASE_URL__: string | undefined;
+declare const __API_KEY__: string | undefined;
+declare const __API_MODEL__: string | undefined;
+declare const __API_DEFAULT_MODE__: string | undefined;
 import * as webllm from "../../webllm-components";
 import { OptFrontend } from './opt-frontend';
 
@@ -39,7 +44,7 @@ let selectedModel = "sft_model_1.5B-q4f16_1-MLC (Hugging Face)";
 
 // Callback function for initializing progress
 function updateEngineInitProgressCallback(report) {
-    //console.log("initialize", report.progress);
+    console.log("initialize", report.progress);
     document.getElementById("download-status").textContent = report.text;
 }
 
@@ -77,7 +82,7 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
                 clearTimeout(inactivityTimer as unknown as number);
             }
             inactivityTimer = setTimeout(() => {
-                //console.warn("[API] Inactivity timeout reached, aborting stream");
+                console.warn("[API] Inactivity timeout reached, aborting stream");
                 abortController.abort();
             }, INACTIVITY_TIMEOUT_MS) as unknown as number;
         };
@@ -110,7 +115,7 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
 
         const contentType = response.headers.get('content-type') || '';
         // Log basic response meta for debugging
-        //console.log("[API] Response content-type:", contentType);
+        console.log("[API] Response content-type:", contentType);
         // If server supports SSE streaming (OpenAI-compatible), handle stream
         if (contentType.includes('text/event-stream')) {
             const reader = response.body!.getReader();
@@ -153,11 +158,11 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
                             fullResponse += delta;
                             onUpdate(fullResponse);
                             // Log incremental delta to console
-                            //console.debug("[API] Stream delta:", delta);
+                            console.debug("[API] Stream delta:", delta);
                             resetInactivity();
                         }
                         if (hasDone) {
-                            //console.log("[API] Stream finished with reason:", choice?.finish_reason ?? 'done flag');
+                            console.log("[API] Stream finished with reason:", choice?.finish_reason ?? 'done flag');
                             onFinish(fullResponse, null);
                             return;
                         }
@@ -167,7 +172,7 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
                 }
             }
             // Stream ended gracefully without explicit [DONE]
-            //console.log("[API] Stream ended. Final response:", fullResponse);
+            console.log("[API] Stream ended. Final response:", fullResponse);
             onFinish(fullResponse, null);
         } else {
             // Fallback: non-streaming JSON response
@@ -178,7 +183,7 @@ async function callOpenAIAPI(messages, onUpdate, onFinish, onError) {
                 data.choices?.[0]?.text ??
                 data.message?.content ??
                 data.response ?? '';
-            //console.log("[API] JSON response:", data);
+            console.log("[API] JSON response:", data);
             onUpdate(content);
             onFinish(content, null);
             return;
@@ -213,13 +218,13 @@ async function streamingGenerating(messages, onUpdate, onFinish, onError) {
             onUpdate(curMessage);
             // Log incremental delta for local WebLLM
             if (curDelta) {
-                //console.debug("[Local] Stream delta:", curDelta);
+                console.debug("[Local] Stream delta:", curDelta);
             }
         }
         const finalMessage = await engine.getMessage();
-        //console.log("[Local] Final response:", finalMessage);
+        console.log("[Local] Final response:", finalMessage);
         if (usage) {
-            //console.log("[Local] Usage:", usage);
+            console.log("[Local] Usage:", usage);
         }
         onFinish(finalMessage, usage);
     } catch (err) {
@@ -246,7 +251,7 @@ function onMessageSend(input) {
     messages.push(message);
 
     // Print the current messages array to the console for debugging purposes
-    //console.log("Messages:", messages);
+    console.log("Messages:", messages);
 
     const onFinishGenerating = (finalMessage, usage) => {
         document.getElementById("message-out").innerText = "AI Response:\n" + finalMessage.replace(/\?/g, '?\n');
@@ -275,7 +280,7 @@ function onMessageSend(input) {
         onFinishGenerating,
         (err) => {
             document.getElementById("message-out").innerText = "Error: " + err;
-            //console.error(err);
+            console.error(err);
         }
 
     );
@@ -333,7 +338,7 @@ function initializeErrorObserver() {
     const messageOut = document.getElementById('message-out');
 
     if (!frontendErrorOutput || !askAIButton) {
-        //console.error('Required elements not found');
+        console.error('Required elements not found');
         return;
     }
 
@@ -437,7 +442,13 @@ function persistAPIConfig() {
 }
 
 function loadAPIConfig() {
-    // Build-time overrides injected by webpack (via HtmlWebpackPlugin window)
+    // Build-time overrides via DefinePlugin (preferred when API_INJECT_TARGET === 'define')
+    if (typeof __API_BASE_URL__ !== 'undefined') API_CONFIG.baseUrl = __API_BASE_URL__;
+    if (typeof __API_KEY__ !== 'undefined') API_CONFIG.apiKey = __API_KEY__;
+    if (typeof __API_MODEL__ !== 'undefined') API_CONFIG.model = __API_MODEL__;
+    if (typeof __API_DEFAULT_MODE__ !== 'undefined' && __API_DEFAULT_MODE__ === 'api') API_CONFIG.enabled = true;
+
+    // Build-time overrides injected by HtmlWebpackPlugin window (when API_INJECT_TARGET === 'window')
     const w = (window as any) || {};
     const hidePanel = !!w.API_HIDE_API_PANEL;
     if (!hidePanel) {
@@ -449,17 +460,17 @@ function loadAPIConfig() {
                 API_CONFIG.baseUrl = (config.baseUrl ?? API_CONFIG.baseUrl);
                 API_CONFIG.apiKey = (config.apiKey ?? API_CONFIG.apiKey);
                 API_CONFIG.model = (config.model ?? API_CONFIG.model);
-                //console.log("API configuration loaded:", config);
+                console.log("API configuration loaded:", config);
             } catch (e) {
-                //console.error("Failed to load API configuration:", e);
+                console.error("Failed to load API configuration:", e);
             }
         }
     } else {
         localStorage.removeItem('api_config');
     }
-    if (w.API_BASE_URL) API_CONFIG.baseUrl = w.API_BASE_URL;
-    if (w.API_KEY !== undefined) API_CONFIG.apiKey = w.API_KEY;
-    if (w.API_MODEL) API_CONFIG.model = w.API_MODEL;
+    if (w.API_BASE_URL) API_CONFIG.baseUrl = API_CONFIG.baseUrl || w.API_BASE_URL;
+    if (w.API_KEY !== undefined) API_CONFIG.apiKey = API_CONFIG.apiKey || w.API_KEY;
+    if (w.API_MODEL) API_CONFIG.model = API_CONFIG.model || w.API_MODEL;
 
     // Reflect runtime values into inputs only if panel is visible
     if (!hidePanel) {

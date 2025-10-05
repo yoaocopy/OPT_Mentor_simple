@@ -8,6 +8,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const injectApi = String(process.env.INJECT_API_CONFIG || '').toLowerCase() === 'true';
 // Inherit from INJECT_API_CONFIG when API_HIDE_API_PANEL is empty string or unset
 const hideApiPanel = String(process.env.API_HIDE_API_PANEL || process.env.INJECT_API_CONFIG || '').toLowerCase() === 'true';
+const injectTarget = String(process.env.API_INJECT_TARGET || 'window').toLowerCase();
 const windowVars = {};
 if (injectApi) {
   if (process.env.API_BASE_URL) windowVars.API_BASE_URL = process.env.API_BASE_URL;
@@ -16,6 +17,15 @@ if (injectApi) {
 }
 // Always inject this flag so the UI can decide whether to show API panel
 windowVars.API_HIDE_API_PANEL = hideApiPanel;
+
+// Build-time JS define injection when API_INJECT_TARGET === 'define'
+const defineReplacements = {};
+if (injectApi && injectTarget === 'define') {
+  defineReplacements.__API_BASE_URL__ = JSON.stringify(process.env.API_BASE_URL || '');
+  defineReplacements.__API_KEY__ = JSON.stringify(process.env.API_KEY || '');
+  defineReplacements.__API_MODEL__ = JSON.stringify(process.env.API_MODEL || '');
+  defineReplacements.__API_DEFAULT_MODE__ = JSON.stringify(process.env.API_DEFAULT_MODE || '');
+}
 
 module.exports = {
     plugins: [
@@ -33,15 +43,16 @@ module.exports = {
         title: 'Visualize Python Code Execution',
         chunks: ['visualize'],
         template: './js/template/visualize.html',
-        window: windowVars,
+        window: injectTarget === 'window' ? windowVars : undefined,
       }),
       new HtmlWebpackPlugin({
         filename: "live.html",
         title: 'Live Python Programming Mode',
         chunks: ['opt-live'],
         template: './js/template/live.html',
-        window: windowVars,
-      })
+        window: injectTarget === 'window' ? windowVars : undefined,
+      }),
+      ...(injectTarget === 'define' ? [new webpack.DefinePlugin(defineReplacements)] : [])
       // run a micro frontend regression test after every webpack build
       // to sanity-check
       //
