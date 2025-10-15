@@ -43,7 +43,9 @@
                 ...</div>
 
               <div id="codeInputPane"></div>
-              <div id="legendDiv"></div>
+              <div id="legendDiv">
+                <button id="visualizeBtn" class="smallBtn" type="button" title="Open the visualize page with the code currently in the editor" style="float: right;">Visualize</button>
+              </div>
               <div id="executionSlider" style="margin-top: 10px;"></div>
 
               <!-- copied and pasted from pytutor.js
@@ -79,8 +81,9 @@
               <div class="mode-controls" style="margin-top: 10px;">
                 <span id="mode-status" style="margin-right: 8px; font-weight: bold;">Local Mode</span>
                 <button id="toggle-api">Switch to API Mode</button>
-                <!-- Reverse action: go back to visualize (index) with current state -->
-              <button id="visualizeBtn" class="smallBtn" type="button"  title="Open the visualize page with the code currently in the editor">Visualize</button>
+                <!-- Original Visualize button location (now moved into legendDiv):
+                <button id="visualizeBtn" class="smallBtn" type="button"  title="Open the visualize page with the code currently in the editor">Visualize</button>
+                -->
               </div>
 
 
