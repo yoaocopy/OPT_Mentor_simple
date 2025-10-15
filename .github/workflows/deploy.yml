@@ -31,7 +31,8 @@ jobs:
       # # Hide API config panel on UI (still keeps mode toggle)
       # API_HIDE_API_PANEL: ${{ inputs.api_hide_api_panel || 'false' }}
 
-      INJECT_API_CONFIG: 'false'         # whether to inject API information here
+      SINGLE_MODE: 'local' # 'local' or 'api' or ''; empty means allow the switching of the two modes；The method for passing this value is also determined by API_INJECT_TARGET.
+      INJECT_API_CONFIG: 'true'         # whether to inject API information here
       API_INJECT_TARGET: 'define'   # or 'window'; 'define' means information injected to js, 'window' means injected to html source file with windowVars
       API_BASE_URL: 'https://your.api/v1'
       API_KEY: 'your-api-key'           # be care

@@ -5,9 +5,19 @@ declare const __API_KEY__: string | undefined;
 declare const __API_MODEL__: string | undefined;
 declare const __API_DEFAULT_MODE__: string | undefined;
 declare const __API_HIDE_API_PANEL__: string | boolean | undefined;
+declare const __SINGLE_MODE__: string | undefined;
 
 import * as webllm from "../../webllm-components";
 import { OptFrontend } from './opt-frontend';
+
+/*************** Mode Lock Helper ***************/
+function getSingleModelSetting(): 'local' | 'api' | '' {
+    const w: any = (window as any) || {};
+    const raw: any = (typeof __SINGLE_MODE__ !== 'undefined') ? __SINGLE_MODE__ : w.SINGLE_MODE;
+    const val = (raw || '').toString().toLowerCase();
+    if (val === 'local' || val === 'api') return val as 'local' | 'api';
+    return '';
+}
 
 /*************** API Configuration ***************/
 const API_CONFIG = {
@@ -378,6 +388,10 @@ function initializeErrorObserver() {
 
 /*************** Mode Switching Functions ***************/
 function toggleAPIMode() {
+    const lock = getSingleModelSetting();
+    if (lock === 'local' || lock === 'api') {
+        return; // locked mode, ignore toggles
+    }
     API_CONFIG.enabled = !API_CONFIG.enabled;
     updateModeDisplay();
     updateUIElements();
@@ -385,15 +399,26 @@ function toggleAPIMode() {
 }
 
 function updateModeDisplay() {
+    const lock = getSingleModelSetting();
     const statusElement = document.getElementById("mode-status");
     if (statusElement) {
-        statusElement.textContent = `Current Mode: ${API_CONFIG.enabled ? "API Mode" : "Local Mode"}`;
-        statusElement.className = API_CONFIG.enabled ? "mode-status api-mode" : "mode-status local-mode";
+        if (lock === 'local' || lock === 'api') {
+            (statusElement as HTMLElement).style.display = 'none';
+        } else {
+            (statusElement as HTMLElement).style.display = '';
+            statusElement.textContent = `Current Mode: ${API_CONFIG.enabled ? "API Mode" : "Local Mode"}`;
+            statusElement.className = API_CONFIG.enabled ? "mode-status api-mode" : "mode-status local-mode";
+        }
     }
     
     const toggleBtn = document.getElementById("toggle-api");
     if (toggleBtn) {
-        toggleBtn.textContent = API_CONFIG.enabled ? "Switch to Local Mode" : "Switch to API Mode";
+        if (lock === 'local' || lock === 'api') {
+            (toggleBtn as HTMLElement).style.display = 'none';
+        } else {
+            (toggleBtn as HTMLElement).style.display = '';
+            toggleBtn.textContent = API_CONFIG.enabled ? "Switch to Local Mode" : "Switch to API Mode";
+        }
     }
 }
 
@@ -552,6 +577,21 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAPIConfig();
     // Bind inputs for immediate effect
     bindAPIInputsImmediate();
+
+    // Enforce SINGLE_MODEL behavior if provided via define/window injection
+    (function enforceSingleModelSetting() {
+        const lock = getSingleModelSetting();
+        const toggleBtn = document.getElementById("toggle-api") as HTMLButtonElement | null;
+        if (lock === 'local') {
+            API_CONFIG.enabled = false; // force local mode
+            if (toggleBtn) toggleBtn.style.display = 'none';
+        } else if (lock === 'api') {
+            API_CONFIG.enabled = true; // force api mode
+            if (toggleBtn) toggleBtn.style.display = 'none';
+        } else {
+            if (toggleBtn) toggleBtn.style.display = '';
+        }
+    })();
     
     // If user switches to API mode for the first time in this browser session,
     // use the in-code defaults immediately (so displayed values match actual usage)
@@ -637,6 +677,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn2 = document.getElementById("toggle-api");
     if (toggleBtn2) {
         toggleBtn2.addEventListener("click", toggleAPIMode);
+    }
+
+    // Auto-trigger model download on page load in Local Mode
+    const downloadBtn = document.getElementById("download") as HTMLButtonElement | null;
+    if (downloadBtn && !API_CONFIG.enabled) {
+        downloadBtn.click();
     }
 });
 

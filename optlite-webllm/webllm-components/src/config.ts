@@ -320,28 +320,28 @@ export const prebuiltAppConfig: AppConfig = {
       }
     },
 
-    // Deep Server models
-    {
-      model: "https://deep.cs.cityu.edu.hk/optmentor/ai-model/models/sft_model_1.5B-q4f16_1-MLC",
-      model_id: "sft_model_1.5B-q4f16_1-MLC (Deep Server)",
-      model_lib: "https://deep.cs.cityu.edu.hk/optmentor/ai-model/libs/Qwen2-1.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
-      vram_required_MB: 1629.75,
-      low_resource_required: true,
-      overrides: {
-        context_window_size: 4096,
-      }
-    },
-    //localhost models
-    {
-      model: "http://localhost:5050/models/sft_model_1.5B-q4f16_1-MLC",
-      model_id: "sft_model_1.5B-q4f16_1-MLC (Localhost)",
-      model_lib: "http://localhost:5050/libs/Qwen2-1.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
-      vram_required_MB: 1629.75,
-      low_resource_required: true,
-      overrides: {
-        context_window_size: 4096,
-      }
-    },
+    // // Deep Server models
+    // {
+    //   model: "https://deep.cs.cityu.edu.hk/optmentor/ai-model/models/sft_model_1.5B-q4f16_1-MLC",
+    //   model_id: "sft_model_1.5B-q4f16_1-MLC (Deep Server)",
+    //   model_lib: "https://deep.cs.cityu.edu.hk/optmentor/ai-model/libs/Qwen2-1.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+    //   vram_required_MB: 1629.75,
+    //   low_resource_required: true,
+    //   overrides: {
+    //     context_window_size: 4096,
+    //   }
+    // },
+    // //localhost models
+    // {
+    //   model: "http://localhost:5050/models/sft_model_1.5B-q4f16_1-MLC",
+    //   model_id: "sft_model_1.5B-q4f16_1-MLC (Localhost)",
+    //   model_lib: "http://localhost:5050/libs/Qwen2-1.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+    //   vram_required_MB: 1629.75,
+    //   low_resource_required: true,
+    //   overrides: {
+    //     context_window_size: 4096,
+    //   }
+    // },
 ]
 };
 

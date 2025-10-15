@@ -17,6 +17,8 @@ const windowVars = (injectApi && injectTarget === 'window') ? {
   ...(process.env.API_MODEL ? { API_MODEL: String(process.env.API_MODEL).trim() } : {}),
   // UI-only flag controlling whether to show the API panel
   API_HIDE_API_PANEL: hideApiPanel,
+  // Mode lock: 'local' | 'api' | ''
+  ...(process.env.SINGLE_MODE ? { SINGLE_MODE: String(process.env.SINGLE_MODE).trim().toLowerCase() } : {}),
 } : undefined;
 
 // Build-time JS define injection when API_INJECT_TARGET === 'define'
@@ -28,6 +30,8 @@ if (injectApi && injectTarget === 'define') {
   defineReplacements.__API_DEFAULT_MODE__ = JSON.stringify(process.env.API_DEFAULT_MODE || '');
   // Also expose the UI-only flag via define to keep behavior consistent with window mode
   defineReplacements.__API_HIDE_API_PANEL__ = JSON.stringify(hideApiPanel);
+  // Mode lock
+  defineReplacements.__SINGLE_MODE__ = JSON.stringify((process.env.SINGLE_MODE || '').toLowerCase());
 }
 
 module.exports = {
