@@ -6,8 +6,10 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 
 <details>
 <summary>Click to see the tutorial</summary>
+
 Starting page:
-![OPTMentor main page](./screenshots/OPTMentor_main_page.png)
+
+![OPTMentor main page](./screenshots/OPTMentor_main_page.jpg)
 Enter your code, 
 - the `Visulize` button will navigate to the page for visulizing  the excution;
 - the `Live Edit` button will navigate to the page with fine-tuned LLM mode that providing Socratic hints; and
