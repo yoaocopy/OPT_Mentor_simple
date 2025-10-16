@@ -11,7 +11,7 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 - **Enhanced Security**: No server-side code execution, reducing security risks
 - **Educational Focus**: Perfect for classroom settings and online exams
 - **Safe Exam Browser Compatible**: Works with [Safe Exam Browser](https://safeexambrowser.org/) 
-> ⚠️ The AI model does not work with Safe Exam Browser at present.
+  > ⚠️ The AI model does not work with Safe Exam Browser at present.
 - **Interactive Visualization**: Visual representation of Python program execution
 - **Live Editing Mode**: Real-time code editing and visualization
 - **Socratic AI hints**: Provide Socratic style hints instead of answers with the refined LLM model.
