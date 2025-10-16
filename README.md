@@ -18,8 +18,8 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 - **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
 
 
-<details>
-<summary open>Click to see the tutorial</summary>
+<details open>
+<summary>Tutorial (Click to expand/collapse)</summary>
 
 Starting page:
 
