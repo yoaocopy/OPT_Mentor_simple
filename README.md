@@ -19,9 +19,9 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 
 
 <details open>
-<summary>Tutorial (Click to expand/collapse)</summary>
+<summary>💡 Tutorial (Click to expand/collapse)</summary>
 
-Starting page:
+➡️ Starting page:
 
 ![OPTMentor main page](./screenshots/OPTMentor_main_page.jpg)
 Enter your code, 
@@ -29,14 +29,14 @@ Enter your code,
 - the `Live Edit` button will navigate to the page with fine-tuned LLM mode that providing Socratic hints; and
 - the "Permalink" button will generate the link for sharing.
 
-Visulization mode:
+➡️ Visulization mode:
 ![OPTMentor visualization of excution](./screenshots/OPTMentor_visualize_display.jpg)
 Here you can
 - see the visulization of the variables, etc., on the right-hand side area;
 - check the excution step-by-step either by draging the progress bar or by clicking the `<< First`, `<Prev`, ... buttons.
 - Click "Edit this code" will navigate you back to the page for code editing, where you can also choose to go to the live editing mode. 
 
-Live editing mode with LLM integrated:
+➡️ Live editing mode with LLM integrated:
 ![OPTMentor live edit page 1](./screenshots/OPTMentor_live_edit_1.jpg)
 For the first time you visit the live editing page:
 - The LLM model will be downloaded and loaded automaticly, and the progress will also be shown. You can also click `Pull Model` button to retry when needed.
