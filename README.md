@@ -21,31 +21,31 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 <details open>
 <summary>💡(Click to expand/collapse)</summary>
 
-➡️ Starting page:
+➡️ Starting Page
 
 ![OPTMentor main page](./screenshots/OPTMentor_main_page.jpg)
-Enter your code, 
-- the `Visulize` button will navigate to the page for visulizing  the excution;
-- the `Live Edit` button will navigate to the page with fine-tuned LLM mode that providing Socratic hints; and
-- the "Permalink" button will generate the link for sharing.
+After you enter your code:
+- The `Visulize` button will navigate you to the page for visualizing the execution.
+- The `Live Edit` button will navigate you to the page featuring a fine-tuned LLM mode that provides Socratic hints.
+- The `Permalink` button will generate a shareable link.
 
-➡️ Visulization mode:
+➡️ Visualization Mode
 ![OPTMentor visualization of excution](./screenshots/OPTMentor_visualize_display.jpg)
-Here you can
-- see the visulization of the variables, etc., on the right-hand side area;
-- check the excution step-by-step either by draging the progress bar or by clicking the `<< First`, `<Prev`, ... buttons.
-- Click "Edit this code" will navigate you back to the page for code editing, where you can also choose to go to the live editing mode. 
+Here you can:
+- View the visualization of variables, etc., in the right-hand side area.
+- Inspect the execution step-by-step either by dragging the progress bar or by clicking the `<< First`, `<Prev`, and other buttons.
+- Clicking "Edit this code" will navigate you back to the code editing page, where you can also choose to enter the live editing mode. 
 
-➡️ Live editing mode with LLM integrated:
+➡️ Live Editing Mode with LLM Integrated
 ![OPTMentor live edit page 1](./screenshots/OPTMentor_live_edit_1.jpg)
-For the first time you visit the live editing page:
-- The LLM model will be downloaded and loaded automaticly, and the progress will also be shown. You can also click `Pull Model` button to retry when needed.
-- The model downloaded will be cached in the browser. `Reset Local State` button allows you to clean the cache and refresh the page as if you visit this page for the first time. 
+Visit the live editing page:
+- The LLM model will be automatically downloaded and loaded, You can also click `Pull Model` button to retry when needed.
+- The downloaded model will be cached in the browser. The `Reset Local State` button allows you to clear the cache and refresh the page, simulating a first-time visit.
 
 ![OPTMentor live edit page 2](./screenshots/OPTMentor_live_edit_2.jpg)
-- When you see the message like "Finish loading on WebGPU ...", it means the  LLM model has been loaded succesfully.
-- When your code generates errors, the `Ask AI` button will show up, and clicking on it, you will get the socratic hints from the AI.
-- You can go back to the page focusing on visulization of the excution with the `Visulize` below the code box.
+- When you see the message under the `Pull Model` button reads like "Finish loading on WebGPU...", it means the LLM model has been successfully loaded.
+- When your code encounters an error, the `Ask AI` button will appear. Clicking on it will provide you with Socratic hints from the AI.
+- You can return to the Visualization page (which focuses on execution visualization) using the `Visualize` button below the code box.
 
 </details>
 
