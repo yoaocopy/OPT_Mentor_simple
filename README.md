@@ -17,9 +17,9 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 - **Live Editing Mode**: Real-time code editing and visualization
 - **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
 
-
+## 💡 Tutorial 💡
 <details open>
-<summary>💡 Tutorial (Click to expand/collapse)</summary>
+<summary>💡(Click to expand/collapse)</summary>
 
 ➡️ Starting page:
 
