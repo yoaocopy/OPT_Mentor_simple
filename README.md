@@ -4,8 +4,22 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 
 📌 Visit [https://dive4dec.github.io/OPT_Mentor/](https://dive4dec.github.io/OPT_Mentor/) to have a try!
 
+
+## Features
+
+- **Serverless Operation**: Runs entirely in the browser using [Pyodide](https://pyodide.org)
+- **Offline Capability**: Can be used without internet connection
+- **Enhanced Security**: No server-side code execution, reducing security risks
+- **Educational Focus**: Perfect for classroom settings and online exams
+- **Safe Exam Browser Compatible**: Works with [Safe Exam Browser](https://safeexambrowser.org/) 
+  > ⚠️ The AI model does not work with Safe Exam Browser at present.
+- **Interactive Visualization**: Visual representation of Python program execution
+- **Live Editing Mode**: Real-time code editing and visualization
+- **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
+
+
 <details>
-<summary>Click to see the tutorial</summary>
+<summary open>Click to see the tutorial</summary>
 
 Starting page:
 
@@ -35,18 +49,6 @@ For the first time you visit the live editing page:
 
 </details>
 
-
-## Features
-
-- **Serverless Operation**: Runs entirely in the browser using [Pyodide](https://pyodide.org)
-- **Offline Capability**: Can be used without internet connection
-- **Enhanced Security**: No server-side code execution, reducing security risks
-- **Educational Focus**: Perfect for classroom settings and online exams
-- **Safe Exam Browser Compatible**: Works with [Safe Exam Browser](https://safeexambrowser.org/) 
-  > ⚠️ The AI model does not work with Safe Exam Browser at present.
-- **Interactive Visualization**: Visual representation of Python program execution
-- **Live Editing Mode**: Real-time code editing and visualization
-- **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
 
 ## Installation (Github Action)
 The pages are automaticly compiled with github action, and pushed to the [`gh-pages`](https://github.com/dive4dec/OPT_Mentor/tree/gh-pages) branch. Those compiled files will work with a web server.
