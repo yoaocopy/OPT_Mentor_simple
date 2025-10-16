@@ -7,7 +7,7 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 
 ## Features
 
-- **Serverless Operation**: Runs entirely in the browser using [Pyodide](https://pyodide.org)
+- ✨ **Serverless Operation**: Runs entirely in the browser using [Pyodide](https://pyodide.org)
 - **Offline Capability**: Can be used without internet connection
 - **Enhanced Security**: No server-side code execution, reducing security risks
 - **Educational Focus**: Perfect for classroom settings and online exams
@@ -15,7 +15,7 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
   > ⚠️ The AI model does not work with Safe Exam Browser at present.
 - **Interactive Visualization**: Visual representation of Python program execution
 - **Live Editing Mode**: Real-time code editing and visualization
-- **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
+- ✨ **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
 
 ## 💡 Tutorial 💡
 <details open>
@@ -48,6 +48,17 @@ Visit the live editing page:
 - You can return to the Visualization page (which focuses on execution visualization) using the `Visualize` button below the code box.
 
 </details>
+
+## ✨ Anti-Jailbreak
+<details open>
+<summary> An Example of Anti-Jailbreak (Click to expand/collapse)</summary>
+
+![OPTMentor anti jailbreak](./screenshots/OPTMentor_anti_jailbreak.jpg)
+Users may attempt to jailbreak the LLM by directly asking for the answer, which must be prevented when using this AI-integrated tool for exams. The screenshot below shows an example where our fine-tuned model successfully prevented the jailbreak attempt.
+</details>
+
+
+
 
 
 ## Installation (Github Action)
