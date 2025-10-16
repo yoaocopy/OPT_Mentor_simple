@@ -4,6 +4,36 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
 
 📌 Visit [https://dive4dec.github.io/OPT_Mentor/](https://dive4dec.github.io/OPT_Mentor/) to have a try!
 
+<details>
+<summary>Click to see the tutorial</summary>
+Starting page:
+![OPTMentor main page](./screenshots/OPTMentor_main_page.png)
+Enter your code, 
+- the `Visulize` button will navigate to the page for visulizing  the excution;
+- the `Live Edit` button will navigate to the page with fine-tuned LLM mode that providing Socratic hints; and
+- the "Permalink" button will generate the link for sharing.
+
+Visulization mode:
+![OPTMentor visualization of excution](./screenshots/OPTMentor_visualize_display.jpg)
+Here you can
+- see the visulization of the variables, etc., on the right-hand side area;
+- check the excution step-by-step either by draging the progress bar or by clicking the `<< First`, `<Prev`, ... buttons.
+- Click "Edit this code" will navigate you back to the page for code editing, where you can also choose to go to the live editing mode. 
+
+Live editing mode with LLM integrated:
+![OPTMentor live edit page 1](./screenshots/OPTMentor_live_edit_1.jpg)
+For the first time you visit the live editing page:
+- The LLM model will be downloaded and loaded automaticly, and the progress will also be shown. You can also click `Pull Model` button to retry when needed.
+- The model downloaded will be cached in the browser. `Reset Local State` button allows you to clean the cache and refresh the page as if you visit this page for the first time. 
+
+![OPTMentor live edit page 2](./screenshots/OPTMentor_live_edit_2.jpg)
+- When you see the message like "Finish loading on WebGPU ...", it means the  LLM model has been loaded succesfully.
+- When your code generates errors, the `Ask AI` button will show up, and clicking on it, you will get the socratic hints from the AI.
+- You can go back to the page focusing on visulization of the excution with the `Visulize` below the code box.
+
+</details>
+
+
 ## Features
 
 - **Serverless Operation**: Runs entirely in the browser using [Pyodide](https://pyodide.org)
@@ -14,7 +44,7 @@ OPM is a serverless implementation of Online Python Tutor Lite (OPTLite) designe
   > ⚠️ The AI model does not work with Safe Exam Browser at present.
 - **Interactive Visualization**: Visual representation of Python program execution
 - **Live Editing Mode**: Real-time code editing and visualization
-- **Socratic AI hints**: Provide Socratic style hints instead of answers with the refined LLM model.
+- **Socratic AI hints**: Provide Socratic style hints instead of answers with the fine-tuned LLM model.
 
 ## Installation (Github Action)
 The pages are automaticly compiled with github action, and pushed to the [`gh-pages`](https://github.com/dive4dec/OPT_Mentor/tree/gh-pages) branch. Those compiled files will work with a web server.
